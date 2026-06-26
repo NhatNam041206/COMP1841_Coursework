@@ -1,129 +1,70 @@
--- ============================================================
--- DATABASE INITIALIZATION
--- ============================================================
--- Create the database if it doesn't already exist
-CREATE DATABASE IF NOT EXISTS `COMP1841_student_forum_GCS250004` 
+CREATE DATABASE IF NOT EXISTS `COMP1841_student_forum_GCS250004`
 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- Tell MySQL to use this database for all subsequent table actions
 USE `COMP1841_student_forum_GCS250004`;
 
--- ============================================================
--- 1. DROP TABLES IF THEY EXIST (For clean testing environments)
--- ============================================================
 SET FOREIGN_KEY_CHECKS = 0;
-DROP TABLE IF EXISTS `Post`;
+DROP TABLE IF EXISTS `Question`;
 DROP TABLE IF EXISTS `Module`;
 DROP TABLE IF EXISTS `User`;
 SET FOREIGN_KEY_CHECKS = 1;
 
--- ============================================================
--- 2. CREATE TABLES WITH REFERENTIAL INTEGRITY
--- ============================================================
-
--- A. User Table (Stores identity details)
 CREATE TABLE `User` (
-    `user_id` INT AUTO_INCREMENT,
-    `username` VARCHAR(100) NOT NULL,
-    `email` VARCHAR(150) NOT NULL UNIQUE,
-    `password` VARCHAR(255) NOT NULL, -- Sized for secure password_hash() strings
-    PRIMARY KEY (`user_id`)
-);
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- B. Module Table (Stores university course modules)
+INSERT INTO `User` (`id`, `name`, `email`) VALUES
+(1, 'Alice Smith', 'alice@gre.ac.uk'),
+(2, 'Bob Jones', 'bob@gre.ac.uk'),
+(3, 'Charlie Brown', 'charlie@gre.ac.uk');
+
 CREATE TABLE `Module` (
-    `module_id` INT AUTO_INCREMENT,
-    `module_name` VARCHAR(150) NOT NULL UNIQUE,
-    PRIMARY KEY (`module_id`)
-);
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- C. Post Table (The central question forum entity)
-CREATE TABLE `Post` (
-    `post_id` INT AUTO_INCREMENT,
-    `title` VARCHAR(255) NOT NULL,
-    `content` TEXT NOT NULL,
-    `image_path` VARCHAR(255) DEFAULT NULL,
-    `document_path` VARCHAR(255) DEFAULT NULL,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    `user_id` INT NOT NULL,
-    `module_id` INT NOT NULL,
-    PRIMARY KEY (`post_id`),
-    -- Enforcing Referential Integrity
-    CONSTRAINT `fk_post_user` 
-        FOREIGN KEY (`user_id`) REFERENCES `User` (`user_id`) 
-        ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT `fk_post_module` 
-        FOREIGN KEY (`module_id`) REFERENCES `Module` (`module_id`) 
-        ON DELETE CASCADE ON UPDATE CASCADE
-);
+INSERT INTO `Module` (`id`, `name`) VALUES
+(1, 'COMP1841 - Web Programming 1'),
+(2, 'COMP1649 - Systems Development'),
+(3, 'COMP1782 - Computer Systems and Networks');
 
+CREATE TABLE `Question` (
+  `id` int(11) NOT NULL,
+  `questiontext` text DEFAULT NULL,
+  `questiondate` date NOT NULL,
+  `questionimage` varchar(255) NOT NULL,
+  `questiondocument` varchar(255) DEFAULT NULL,
+  `userid` int(11) DEFAULT NULL,
+  `moduleid` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
--- ============================================================
--- 3. INSERT 7 SAMPLES OF DUMMY DATA FOR TESTING
--- ============================================================
+INSERT INTO `Question` (`id`, `questiontext`, `questiondate`, `questionimage`, `questiondocument`, `userid`, `moduleid`) VALUES
+(1, 'PDOException: SQLSTATE[HY000] Connection refused when using PDO with localhost.', '2026-06-19', '1.jpg', 'pdo-notes.pdf', 1, 1),
+(2, 'My form submits but $_POST is empty. What should I check first?', '2026-06-20', '2.jpg', NULL, 2, 1),
+(3, 'How do I show a one-to-many relationship between Module and Question in an ERD?', '2026-06-21', '3.jpg', 'erd-draft.docx', 3, 2);
 
--- Insert Users (Passwords are pre-hashed placeholders matching password_hash standards)
-INSERT INTO `User` (`username`, `email`, `password`) VALUES
-('alice_smith', 'alice@gre.ac.uk', 'abc12345DE'),
-('bob_jones', 'bob@gre.ac.uk', 'abc12345DE'),
-('charlie_brown', 'charlie@gre.ac.uk', 'abc12345DE'),
-('david_k', 'david@gre.ac.uk', 'abc12345DE'),
-('emma_w', 'emma@gre.ac.uk', 'abc12345DE');
+ALTER TABLE `User`
+  ADD PRIMARY KEY (`id`);
 
--- Insert Modules
-INSERT INTO `Module` (`module_name`) VALUES
-('COMP1841 - Web Programming 1'),
-('COMP1649 - Systems Development'),
-('COMP1782 - Computer Systems and Networks');
+ALTER TABLE `Module`
+  ADD PRIMARY KEY (`id`);
 
--- Insert 7 Posts (Mapping user_id and module_id accordingly)
-INSERT INTO `Post` (`title`, `content`, `image_path`, `document_path`, `user_id`, `module_id`) VALUES
-(
-    'PDOException: SQLSTATE[HY000] Connection Refused', 
-    'I keep getting a connection refused error when using PDO with localhost. My XAMPP MySQL port is default.', 
-    NULL, 
-    NULL, 
-    1, 1
-),
-(
-    'Form data missing inside $_POST superglobal', 
-    'When submitting my question creation form, var_dump($_POST) returns an empty array. Why?', 
-    NULL, 
-    NULL, 
-    2, 1
-),
-(
-    'How to draw a 1:Many relationship in Crow Foot Notation?', 
-    'Confused about how to show a module connected to posts on my draft ER diagram for the report.', 
-    NULL, 
-    NULL, 
-    3, 2
-),
-(
-    'XAMPP Apache server unexpectedly shutdown', 
-    'Error log points to port 80 blocked by another process. How do I fix this?', 
-    NULL, 
-    NULL, 
-    1, 3
-),
-(
-    'SQL injection protection in PHP PDO', 
-    'Are prepared statements alone fully safe or do I need additional string sanitization functions?', 
-    NULL, 
-    NULL, 
-    4, 1
-),
-(
-    'System Use Case Diagram vs User Stories context', 
-    'Can anyone review my draft system requirements context to see if it matches the assessment rubric parameters?', 
-    NULL, 
-    NULL, 
-    5, 2
-),
-(
-    'Difference between MySQLi and PDO syntax rules', 
-    'Why does the brief warn us we will lose up to 40 marks if we use MySQLi extensions?', 
-    NULL, 
-    NULL, 
-    2, 1
-);
+ALTER TABLE `Question`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `userid` (`userid`),
+  ADD KEY `moduleid` (`moduleid`);
+
+ALTER TABLE `User`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+ALTER TABLE `Module`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+ALTER TABLE `Question`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+ALTER TABLE `Question`
+  ADD CONSTRAINT `fk_question_module` FOREIGN KEY (`moduleid`) REFERENCES `Module` (`id`),
+  ADD CONSTRAINT `fk_question_user` FOREIGN KEY (`userid`) REFERENCES `User` (`id`);
